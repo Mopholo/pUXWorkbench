@@ -1,8 +1,8 @@
-# Site Pattern Studio — Milestones
+# pUXWorkbench — Milestones
 
 ## Purpose
 
-This document defines the incremental development roadmap for Site Pattern Studio.
+This document defines the incremental development roadmap for pUXWorkbench.
 
 Each milestone should produce a demonstrable, testable capability.
 
@@ -90,7 +90,7 @@ tests/
 
 ## Goal
 
-Capture one real webpage and display it inside Site Pattern Studio.
+Capture one real webpage and display it inside pUXWorkbench.
 
 This is the first end-to-end vertical slice.
 
@@ -159,7 +159,7 @@ Page height should remain native/full-page height.
 
 ## Acceptance Criteria
 
-Given a URL, Site Pattern Studio can:
+Given a URL, pUXWorkbench can:
 
 1. Open the website.
 2. Render the page.
@@ -303,7 +303,7 @@ Home
 
 and a button that opens a modal without changing the URL:
 
-Site Pattern Studio can produce:
+pUXWorkbench can produce:
 
 ```text id="cdh61s"
 State A
@@ -428,7 +428,7 @@ PROHIBITED
 
 ## Acceptance Criteria
 
-Given a starting URL and crawl limits, Site Pattern Studio can discover and capture multiple pages without leaving the permitted site boundary or executing prohibited actions.
+Given a starting URL and crawl limits, pUXWorkbench can discover and capture multiple pages without leaving the permitted site boundary or executing prohibited actions.
 
 ---
 

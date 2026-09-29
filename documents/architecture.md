@@ -1,8 +1,8 @@
-# Site Pattern Studio — Architecture
+# pUXWorkbench — Architecture
 
 ## Purpose
 
-Site Pattern Studio analyzes existing websites and web applications to understand their:
+pUXWorkbench analyzes existing websites and web applications to understand their:
 
 - Visual layout
 - Page structure

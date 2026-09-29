@@ -1,8 +1,8 @@
-# Site Pattern Studio — Domain Model
+# pUXWorkbench — Domain Model
 
 ## Purpose
 
-This document defines the core concepts used throughout Site Pattern Studio.
+This document defines the core concepts used throughout pUXWorkbench.
 
 These terms should have consistent meanings across:
 
