@@ -9,7 +9,8 @@ interface Props {
   executionResult: InteractionExecutionResult | null;
   isExecuting: boolean;
   executionError: string | null;
-  onExecute: (interaction: PageInteraction) => Promise<void>;
+  onInteractionSelected: () => void;
+  onExecute: (sourceCapture: PageCapture, interaction: PageInteraction) => Promise<void>;
 }
 
 export function CaptureViewer({
@@ -17,6 +18,7 @@ export function CaptureViewer({
   executionResult,
   isExecuting,
   executionError,
+  onInteractionSelected,
   onExecute,
 }: Props) {
   const [selectedInteraction, setSelectedInteraction] = useState<PageInteraction | null>(null);
@@ -38,7 +40,13 @@ export function CaptureViewer({
     }
   }, [executionResult]);
 
+  function selectInteraction(interaction: PageInteraction): void {
+    onInteractionSelected();
+    setSelectedInteraction(interaction);
+  }
+
   function viewSource(): void {
+    onInteractionSelected();
     setSelectedInteraction(null);
     setVisibleCapture(executionResult?.sourceState.capture ?? capture);
     setViewingTarget(false);
@@ -46,6 +54,7 @@ export function CaptureViewer({
 
   function viewTarget(): void {
     if (!executionResult) return;
+    onInteractionSelected();
     setSelectedInteraction(null);
     setVisibleCapture(executionResult.targetState.capture);
     setViewingTarget(true);
@@ -106,7 +115,7 @@ export function CaptureViewer({
                   }}
                   title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
                   aria-label={`Inspect ${interaction.accessibleName || interaction.visibleText || interaction.elementType}`}
-                  onClick={() => setSelectedInteraction(interaction)}
+                  onClick={() => selectInteraction(interaction)}
                 />
               );
             })}
@@ -116,7 +125,7 @@ export function CaptureViewer({
           interaction={selectedInteraction}
           isExecuting={isExecuting}
           executionError={executionError}
-          onExecute={onExecute}
+          onExecute={(interaction) => onExecute(visibleCapture, interaction)}
         />
       </div>
     </section>

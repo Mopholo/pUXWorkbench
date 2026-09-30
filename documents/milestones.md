@@ -263,6 +263,15 @@ They must remain aligned when the viewer changes size.
 
 Execute safe interactions and detect UI changes that do not necessarily produce URL navigation.
 
+### Milestone 3 validation refinements
+
+- Execute interactions from the UI state currently being viewed, allowing state-to-state chaining.
+- Prefer semantic interaction reconstruction and use captured CSS selectors only as a fallback.
+- Permit non-submitting form controls to expose additional UI state while continuing to block submission, reset, file selection, destructive, and transactional actions.
+- Clear a prior execution error when a different interaction is selected.
+- Wait for fonts, layout work, and short entrance animations before recording geometry and screenshots.
+- Keep Playwright current enough that captured Chromium behavior reflects contemporary production sites.
+
 Example:
 
 ```text id="c06q85"

@@ -30,16 +30,21 @@ function classifyExecutionSafety(interaction: Omit<PageInteraction, "normalizedB
     return { executionSafety: "blocked", executionReason: "The control appears destructive or transactional." };
   }
 
-  if (interaction.elementType === "input" || interaction.elementType === "select" || interaction.elementType === "textarea") {
-    return { executionSafety: "blocked", executionReason: "Milestone 3 does not enter or submit form data." };
+  const submissionTypes = new Set(["submit", "image", "reset"]);
+  if (interaction.elementType === "input" && interaction.inputType && submissionTypes.has(interaction.inputType)) {
+    return { executionSafety: "blocked", executionReason: "Form submission/reset controls are not executed during Milestone 3." };
   }
 
-  if (interaction.elementType === "button" && interaction.formAction && interaction.inputType === "submit") {
+  if (interaction.elementType === "input" && interaction.inputType === "file") {
+    return { executionSafety: "blocked", executionReason: "File selection is not executed during Milestone 3." };
+  }
+
+  if (interaction.elementType === "button" && interaction.inputType === "submit") {
     return { executionSafety: "blocked", executionReason: "Form submission is blocked during Milestone 3." };
   }
 
-  if (interaction.formAction && interaction.elementType === "button") {
-    return { executionSafety: "blocked", executionReason: "Buttons associated with a form are blocked during Milestone 3." };
+  if (interaction.elementType === "input" || interaction.elementType === "select" || interaction.elementType === "textarea") {
+    return { executionSafety: "allowed", executionReason: "Eligible for non-submitting form-state exploration; no data will be entered." };
   }
 
   if (interaction.href) {

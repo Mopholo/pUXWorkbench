@@ -11,6 +11,7 @@ function App() {
     isExecuting,
     error: executionError,
     runInteraction,
+    clearExecutionError,
     resetExecution,
   } = useInteractionExecution();
 
@@ -41,7 +42,8 @@ function App() {
           executionResult={executionResult}
           isExecuting={isExecuting}
           executionError={executionError}
-          onExecute={(interaction) => runInteraction(capture, interaction)}
+          onInteractionSelected={clearExecutionError}
+          onExecute={runInteraction}
         />
       ) : (
         <section className="empty-state">

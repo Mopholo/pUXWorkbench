@@ -23,10 +23,21 @@ export function useInteractionExecution() {
     }
   }
 
+  function clearExecutionError(): void {
+    setError(null);
+  }
+
   function resetExecution(): void {
     setResult(null);
     setError(null);
   }
 
-  return { result, isExecuting, error, runInteraction, resetExecution };
+  return {
+    result,
+    isExecuting,
+    error,
+    runInteraction,
+    clearExecutionError,
+    resetExecution,
+  };
 }
