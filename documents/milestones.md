@@ -257,7 +257,7 @@ They must remain aligned when the viewer changes size.
 
 # Milestone 3 — UI State Capture
 
-**Status: In Progress — Final interaction-discovery retest**
+**Status: Complete**
 
 ## Goal
 
@@ -354,57 +354,70 @@ Both states must be independently viewable.
 
 # Milestone 4 — Interactive State Navigation
 
+**Status: In Progress**
+
 ## Goal
 
-Make captured screenshots behave as a navigable reconstruction of the observed interaction graph.
+Turn accumulated UI States and Transitions into an offline navigable reconstruction of the observed interaction graph. Milestone 3 executes the live site; Milestone 4 navigates what has already been captured.
 
-## Behavior
+## Session State Graph
 
-From:
+Maintain a session-level graph of captured UI States and Transitions. Branches are retained rather than replacing the previous target. The same normalized state may have multiple incoming transitions; graph topology is represented by transitions rather than a single-parent assumption.
 
-```text id="zqqx44"
-Home Screenshot
-```
-
-click:
-
-```text id="fpph2r"
-Login
-```
-
-and display:
-
-```text id="93g1mh"
-Home + Login Modal
-```
-
-Click:
-
-```text id="u3dhz6"
-Forgot Password
-```
-
-and display:
-
-```text id="bd1ih7"
-Password Recovery
-```
+When an interaction already has a captured target, clicking its screenshot hit region navigates directly to that target without invoking Playwright. When it has not been explored, it remains selectable and uses the Milestone 3 execution workflow.
 
 ## Navigation
 
 Support:
 
-- Forward state navigation
-- Back navigation
-- State history
-- Interaction highlighting
-- Current-state identification
+- Back and Forward through the user's local navigation history.
+- Current-state identification.
+- Session state and transition counts.
+- Branch preservation when returning to an earlier state and exploring another interaction.
+- Reuse of deterministic structural state IDs so equivalent observed states are not unnecessarily duplicated.
+- Unique graph edges by source State + semantic Interaction identity.
+- Self-transitions such as A → A represented as one State with a self-edge, never duplicate A nodes.
+- A visible distinction between captured transitions and unexplored interactions.
+
+Back/Forward history is independent of graph topology: the graph records what was observed; history records how the user moved through the reconstruction. History stores State IDs only; it never owns or duplicates captured states. Consecutive visits to the same State ID are collapsed, while meaningful revisits such as A → B → A are retained for testing.
+
+## Interaction Behavior
+
+```text
+Known captured interaction
+  → navigate to captured target locally
+
+Unexplored SAFE interaction
+  → select and offer Execute interaction
+
+Unexplored REVIEW interaction
+  → select and require Allow & execute
+
+BLOCKED interaction
+  → remain non-executable
+```
 
 ## Acceptance Criteria
 
-A user can navigate captured states by clicking the same visual controls that produced those states in the original application.
+Starting with a live exploration such as:
 
-The reconstructed experience does not require the original website to remain open.
+```text
+Home
+ ↓
+Products
+ ↓
+Support
+ ↓
+Expanded Support
+ ↓
+Blogger
+```
+
+the user can subsequently navigate those captured states through their screenshot interaction regions without reopening or interacting with the original website.
+
+Back and Forward work across local state-navigation history. Returning to an earlier state preserves previously discovered branches. Selecting an interaction with a known captured edge traverses that edge immediately and does not expose live execution. Selecting an unexplored interaction still invokes the Milestone 3 execution workflow. Reaching an already-known deterministic state reuses it rather than creating an unnecessary duplicate. Repeated A → A observations remain one graph State and one self-transition, and consecutive identical history entries are collapsed.
+
+XYFlow visualization, autonomous crawling/traversal policy, and Capture Profiles remain later milestones.
 
 ---
 

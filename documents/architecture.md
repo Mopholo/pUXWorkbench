@@ -391,3 +391,11 @@ A capture preserves both a full-page screenshot and the current viewport screens
 ## State Reconstruction
 
 Derived UI states carry deterministic reconstruction provenance. The engine reconstructs a state from its base URL and ordered interaction path before executing a subsequent interaction; it must not assume that reloading the current URL reproduces the same UI state.
+
+## Captured State Navigation (Milestone 4)
+
+The workbench maintains an in-memory session graph of normalized UI States and Transitions. Live execution and captured navigation are separate operations: Playwright is used only when an interaction has not yet produced a known transition from the current state. A known transition is navigated locally from stored capture data.
+
+Back/Forward history is a view concern and is independent of graph topology. It contains State ID references only. Consecutive identical visits are collapsed, while meaningful revisits are retained. Returning to a state never discards its previously captured outgoing branches.
+
+Graph identity is structural rather than screenshot-byte identity: stable URL/title/geometry/scroll/interaction evidence determines the deterministic State ID, while screenshot differences remain transition evidence. Known edges are resolved by source State plus semantic Interaction identity before any live execution is offered. A repeated A → A observation therefore resolves to one State with one self-edge rather than manufacturing a breadcrumb-like chain of duplicate states.

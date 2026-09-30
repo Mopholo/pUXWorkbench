@@ -5,7 +5,18 @@ import type { PageCapture, PageInteraction, ReconstructionStep } from "../models
 import type { InteractionExecutionResult, TransitionKind, UIState } from "../models/ui-state.ts";
 
 function stateId(c: PageCapture) {
-  return `state-${createHash("sha256").update(`${c.finalUrl}\n${c.title}\n${c.scrollPosition.x},${c.scrollPosition.y}\n${c.screenshot.dataUrl}`).digest("hex").slice(0, 16)}`;
+  // State identity describes the observed UI structure, not volatile screenshot
+  // bytes. Re-capturing the same logical state must resolve to the same graph
+  // node so A -> A is a self-edge rather than a chain of duplicate A nodes.
+  const structuralIdentity = [
+    c.finalUrl,
+    c.title,
+    `${Math.round(c.scrollPosition.x)},${Math.round(c.scrollPosition.y)}`,
+    `${c.viewport.width}x${c.viewport.height}`,
+    `${c.document.width}x${c.document.height}`,
+    sig(c),
+  ].join("\n");
+  return `state-${createHash("sha256").update(structuralIdentity).digest("hex").slice(0, 16)}`;
 }
 function hash(c: PageCapture) { return createHash("sha256").update(c.screenshot.dataUrl).digest("hex"); }
 function sig(c: PageCapture) {

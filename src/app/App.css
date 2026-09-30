@@ -6,3 +6,6 @@
 .interaction-overlay{pointer-events:none}
 .interaction-hit-region{position:absolute;min-width:1px;min-height:1px;padding:0;border:0;background:transparent;cursor:pointer}
 .occlusion-overlay{pointer-events:none}
+
+/* Milestone 4: captured-state navigation. */
+.state-navigation{display:flex;align-items:center;gap:5px;min-width:0;color:#9da7b3;font-size:.74rem}.state-navigation button{width:30px;height:28px;padding:0;border:1px solid #30363d;border-radius:6px;color:#e8edf4;background:#21262d;font-weight:800}.state-navigation button:disabled{cursor:default;color:#484f58;background:#161b22}.state-navigation__current{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e8edf4;font-weight:700}.state-navigation__counts{white-space:nowrap;color:#6e7681}.interaction-overlay--captured{border-width:2px;border-color:#3fb950;background:rgba(46,160,67,.15)}.interaction-hit-region--captured{cursor:pointer}.interaction-hit-region--captured:hover{outline:2px solid rgba(63,185,80,.8);outline-offset:-2px}@media(max-width:900px){.state-navigation__counts{display:none}}@media(max-width:650px){.state-navigation{order:3;flex:1}.state-navigation__current{max-width:140px}}

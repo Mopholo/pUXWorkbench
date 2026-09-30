@@ -1,16 +1,25 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { PageCapture, PageInteraction } from "../../../../shared/schemas/page-capture";
-import type { InteractionExecutionResult } from "../../../../shared/schemas/ui-state";
+import type { UIState, UITransition } from "../../../../shared/schemas/ui-state";
 import { InteractionDetails } from "./InteractionDetails";
-import { StateTransition } from "./StateTransition";
+import { StateNavigation } from "./StateNavigation";
+import { findCapturedTransition } from "../hooks/useCaptureGraph";
 
 interface Props {
-  capture: PageCapture;
-  executionResult: InteractionExecutionResult | null;
+  state: UIState;
+  states: Record<string, UIState>;
+  transitions: Record<string, UITransition>;
+  stateCount: number;
+  transitionCount: number;
+  canBack: boolean;
+  canForward: boolean;
   isExecuting: boolean;
   executionError: string | null;
   onInteractionSelected: () => void;
-  onExecute: (capture: PageCapture, interaction: PageInteraction, allowReview: boolean) => Promise<void>;
+  onExecute: (interaction: PageInteraction, allowReview: boolean) => Promise<void>;
+  onNavigate: (stateId: string) => void;
+  onBack: () => void;
+  onForward: () => void;
 }
 
 interface ViewportOverlay {
@@ -48,55 +57,33 @@ function getViewportOverlay(capture: PageCapture, interaction: PageInteraction):
 }
 
 export function CaptureViewer({
-  capture,
-  executionResult,
-  isExecuting,
-  executionError,
-  onInteractionSelected,
-  onExecute,
+  state, states, transitions, stateCount, transitionCount, canBack, canForward,
+  isExecuting, executionError, onInteractionSelected, onExecute, onNavigate, onBack, onForward,
 }: Props) {
   const [selected, setSelected] = useState<PageInteraction | null>(null);
   const [overlays, setOverlays] = useState(true);
-  const [visible, setVisible] = useState<PageCapture>(capture);
-  const [target, setTarget] = useState(false);
   const [mode, setMode] = useState<"viewport" | "full">(() => localStorage.getItem("pux:capture-view-mode") === "full" ? "full" : "viewport");
+  const visible = state.capture;
 
-  useEffect(() => {
-    setSelected(null);
-    setVisible(capture);
-    setTarget(false);
-  }, [capture]);
-
-  useEffect(() => {
-    if (!executionResult) return;
-
-    setSelected(null);
-    setVisible(executionResult.targetState.capture);
-    setTarget(true);
-  }, [executionResult]);
+  useEffect(() => { setSelected(null); onInteractionSelected(); }, [state.id]);
 
   useEffect(() => { localStorage.setItem("pux:capture-view-mode", mode); }, [mode]);
 
+  function knownTransition(interaction: PageInteraction) {
+    return findCapturedTransition(transitions, states, state.id, interaction);
+  }
+
   function select(interaction: PageInteraction) {
     onInteractionSelected();
+    const transition = knownTransition(interaction);
+    if (transition) {
+      onNavigate(transition.targetStateId);
+      return;
+    }
     setSelected(interaction);
   }
 
-  function showSource() {
-    onInteractionSelected();
-    setSelected(null);
-    setVisible(executionResult?.sourceState.capture ?? capture);
-    setTarget(false);
-  }
 
-  function showTarget() {
-    if (!executionResult) return;
-
-    onInteractionSelected();
-    setSelected(null);
-    setVisible(executionResult.targetState.capture);
-    setTarget(true);
-  }
 
   const overlaysToRender: ViewportOverlay[] =
     mode === "full"
@@ -127,19 +114,11 @@ export function CaptureViewer({
     <section className="capture-result">
       <div className="capture-topbar">
         <div className="capture-location">
-          <span>{target ? "Target" : "Source"}</span>
-          <a href={visible.finalUrl} target="_blank" rel="noreferrer">
-            {visible.finalUrl}
-          </a>
+          <span>Captured</span>
+          <a href={visible.finalUrl} target="_blank" rel="noreferrer">{visible.finalUrl}</a>
         </div>
 
-        {executionResult && (
-          <StateTransition
-            result={executionResult}
-            onViewSource={showSource}
-            onViewTarget={showTarget}
-          />
-        )}
+        <StateNavigation state={state} stateCount={stateCount} transitionCount={transitionCount} canBack={canBack} canForward={canForward} onBack={onBack} onForward={onForward} />
 
         <div className="capture-modes">
           <button
@@ -190,7 +169,7 @@ export function CaptureViewer({
                 return (
                   <div
                     key={`outline-${interaction.id}`}
-                    className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${isSelected ? " interaction-overlay--selected" : ""}`}
+                    className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${knownTransition(interaction) ? " interaction-overlay--captured" : ""}${isSelected ? " interaction-overlay--selected" : ""}`}
                     style={{ ...style, zIndex: Math.max(2, Math.min(2147480001, interaction.stackingOrder + 1)) }}
                     aria-hidden="true"
                   />
@@ -231,9 +210,9 @@ export function CaptureViewer({
                     <button
                       key={`hit-${interaction.id}-${regionIndex}`}
                       type="button"
-                      className="interaction-hit-region"
+                      className={`interaction-hit-region${knownTransition(interaction) ? " interaction-hit-region--captured" : ""}`}
                       style={{ ...regionStyle, zIndex: Math.max(3, Math.min(2147483640, interaction.stackingOrder + 2)) }}
-                      title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
+                      title={`${interaction.accessibleName || interaction.visibleText || interaction.elementType}${knownTransition(interaction) ? " · captured destination" : ""}`}
                       onClick={() => select(interaction)}
                     />
                   );
@@ -256,7 +235,7 @@ export function CaptureViewer({
           interaction={selected}
           isExecuting={isExecuting}
           executionError={executionError}
-          onExecute={(interaction, allowReview) => onExecute(visible, interaction, allowReview)}
+          onExecute={onExecute}
         />
       </div>
 

@@ -1,25 +1,37 @@
+import { useEffect } from "react";
 import "./App.css";
 import { CaptureForm } from "../features/crawler/components/CaptureForm";
 import { CaptureViewer } from "../features/crawler/components/CaptureViewer";
 import { useInteractionExecution } from "../features/crawler/hooks/useInteractionExecution";
 import { usePageCapture } from "../features/crawler/hooks/usePageCapture";
+import { useCaptureGraph } from "../features/crawler/hooks/useCaptureGraph";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 
 function Workbench() {
   const { capture, isCapturing, error, runCapture } = usePageCapture();
-  const {
-    result,
-    isExecuting,
-    error: executionError,
-    runInteraction,
-    clearExecutionError,
-    resetExecution,
-  } = useInteractionExecution();
+  const { result, isExecuting, error: executionError, runInteraction, clearExecutionError, resetExecution } = useInteractionExecution();
+  const graph = useCaptureGraph();
+  const currentState = graph.currentStateId ? graph.states[graph.currentStateId] : null;
 
   async function captureUrl(url: string) {
     resetExecution();
-    await runCapture(url);
+    const next = await runCapture(url);
+    if (next) {
+      graph.reset();
+      graph.startCapture(next);
+    }
   }
+
+  async function executeCurrent(interaction: Parameters<typeof runInteraction>[1], allowReview: boolean) {
+    if (!currentState) return;
+    await runInteraction(currentState.capture, interaction, allowReview);
+  }
+
+  useEffect(() => {
+    if (result && !useCaptureGraph.getState().transitions[result.transition.id]) {
+      useCaptureGraph.getState().recordExecution(result);
+    }
+  }, [result]);
 
   const isBusy = isCapturing || isExecuting;
   const busyTitle = isCapturing ? "Capturing page…" : "Executing interaction…";
@@ -34,42 +46,31 @@ function Workbench() {
         {error && <p className="capture-error">{error}</p>}
       </section>
 
-      {capture ? (
+      {currentState ? (
         <CaptureViewer
-          key={capture.capturedAt}
-          capture={capture}
-          executionResult={result}
+          state={currentState}
+          states={graph.states}
+          transitions={graph.transitions}
+          stateCount={Object.keys(graph.states).length}
+          transitionCount={Object.keys(graph.transitions).length}
+          canBack={graph.historyIndex > 0}
+          canForward={graph.historyIndex >= 0 && graph.historyIndex < graph.history.length - 1}
           isExecuting={isExecuting}
           executionError={executionError}
           onInteractionSelected={clearExecutionError}
-          onExecute={runInteraction}
+          onExecute={executeCurrent}
+          onNavigate={graph.navigateTo}
+          onBack={graph.back}
+          onForward={graph.forward}
         />
-      ) : (
-        <section className="empty-state">
-          <h2>pUXWorkbench</h2>
-          <p>Enter a source URL to begin capturing UI states.</p>
-        </section>
+      ) : capture ? null : (
+        <section className="empty-state"><h2>pUXWorkbench</h2><p>Enter a source URL to begin capturing UI states.</p></section>
       )}
 
-      {isBusy && (
-        <div className="workbench-busy" role="status" aria-live="polite">
-          <div className="workbench-busy__card">
-            <span className="spinner spinner--large" aria-hidden="true" />
-            <strong>{busyTitle}</strong>
-            <span>{busyDetail}</span>
-          </div>
-        </div>
-      )}
+      {isBusy && <div className="workbench-busy" role="status" aria-live="polite"><div className="workbench-busy__card"><span className="spinner spinner--large" aria-hidden="true" /><strong>{busyTitle}</strong><span>{busyDetail}</span></div></div>}
     </main>
   );
 }
 
-function App() {
-  return (
-    <AppErrorBoundary>
-      <Workbench />
-    </AppErrorBoundary>
-  );
-}
-
+function App() { return <AppErrorBoundary><Workbench /></AppErrorBoundary>; }
 export default App;

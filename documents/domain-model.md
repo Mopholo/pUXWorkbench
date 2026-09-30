@@ -451,3 +451,13 @@ These distinctions are part of the architecture and should not be collapsed mere
 ## Selection controls
 
 Selection controls include native HTML `select` elements and custom/ARIA combobox, listbox, menu-trigger, and option patterns. Opening a selection control is a safe state-revealing interaction. Individual choices remain distinct interactions because choosing a locale, device, variant, or account can change route, content, or application state. Native browser/OS popup pixels are not guaranteed to exist in a page screenshot, so semantic discovery of the control and its choices is authoritative evidence even when the popup itself is outside the captured page surface.
+
+## State Graph and Navigation History
+
+A UI State may have zero, one, or many incoming Transitions. The graph is therefore authoritative for parentage/reachability; `parentStateId` remains legacy capture provenance and must not be interpreted as the complete graph relationship.
+
+A captured Transition binds a source State, an Interaction, and a target State. When that binding is known, the screenshot interaction can navigate to the stored target without executing the original site again.
+
+Navigation History is distinct from the State Graph. It records the user's local Back/Forward viewing path as State ID references and does not own State data or remove graph branches when history changes. Consecutive identical State IDs are collapsed, but non-consecutive revisits are retained because they describe a meaningful testing path.
+
+State identity is deterministic from stable observed structure (URL, title, viewport/document geometry, scroll position, and interaction signature), not screenshot bytes. Screenshot pixels remain evidence and change signals, but volatile rendering differences must not manufacture duplicate graph nodes. A transition is unique by source State plus semantic Interaction identity. A transition may target its own source State; this is a self-edge, not a new State.
