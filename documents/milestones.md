@@ -14,6 +14,8 @@ A milestone is complete only when its acceptance criteria are satisfied.
 
 # Milestone 0 — Application Foundation
 
+**Status: Complete**
+
 ## Goal
 
 Establish a clean Tauri + React + TypeScript application with architectural boundaries in place before implementing site analysis.
@@ -87,6 +89,8 @@ tests/
 ---
 
 # Milestone 1 — Single Page Capture
+
+**Status: Complete**
 
 ## Goal
 
@@ -171,6 +175,8 @@ Given a URL, pUXWorkbench can:
 ---
 
 # Milestone 2 — Interaction Discovery
+
+**Status: In Progress**
 
 ## Goal
 
