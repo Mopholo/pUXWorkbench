@@ -198,6 +198,10 @@ Home + Login Modal
 
 Transitions are classified as navigation, structural, view, or none.
 
+Navigation transitions also record whether the target opened in a new browser page/window and whether the destination is the same host, a related subdomain, or external. This observation is separate from crawl policy: pUXWorkbench may capture the immediate target while later traversal rules determine whether exploration continues.
+
+Visual captures may include Occlusion Regions: non-interactive surfaces such as cookie banners, dialogs, drawers, popovers, and sticky/fixed containers that prevent pointer interaction with lower visual layers. Occlusion is evidence about hit-testing and stacking, not an Interaction itself.
+
 Transitions form the behavioral graph of the application.
 
 ## Capture

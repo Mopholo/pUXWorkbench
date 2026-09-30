@@ -59,13 +59,12 @@ export function CaptureViewer({
   const [overlays, setOverlays] = useState(true);
   const [visible, setVisible] = useState<PageCapture>(capture);
   const [target, setTarget] = useState(false);
-  const [mode, setMode] = useState<"viewport" | "full">("viewport");
+  const [mode, setMode] = useState<"viewport" | "full">(() => localStorage.getItem("pux:capture-view-mode") === "full" ? "full" : "viewport");
 
   useEffect(() => {
     setSelected(null);
     setVisible(capture);
     setTarget(false);
-    setMode("viewport");
   }, [capture]);
 
   useEffect(() => {
@@ -74,8 +73,9 @@ export function CaptureViewer({
     setSelected(null);
     setVisible(executionResult.targetState.capture);
     setTarget(true);
-    setMode(executionResult.transition.kind === "view" ? "viewport" : "full");
   }, [executionResult]);
+
+  useEffect(() => { localStorage.setItem("pux:capture-view-mode", mode); }, [mode]);
 
   function select(interaction: PageInteraction) {
     onInteractionSelected();
@@ -116,6 +116,12 @@ export function CaptureViewer({
   const orderedOverlays = [...overlaysToRender].sort(
     (left, right) => left.interaction.stackingOrder - right.interaction.stackingOrder,
   );
+
+  const occlusionsToRender = (visible.occlusions ?? []).map((region) => {
+    if (mode === "full") return { region, style: { left:`${region.normalizedBounds.xRatio*100}%`, top:`${region.normalizedBounds.yRatio*100}%`, width:`${region.normalizedBounds.widthRatio*100}%`, height:`${region.normalizedBounds.heightRatio*100}%` } as CSSProperties };
+    const b=region.bounds,v=visible.viewport,sp=visible.scrollPosition; const l=Math.max(b.x,sp.x),t=Math.max(b.y,sp.y),r=Math.min(b.x+b.width,sp.x+v.width),bt=Math.min(b.y+b.height,sp.y+v.height);
+    if(r<=l||bt<=t)return null; return {region,style:{left:`${((l-sp.x)/v.width)*100}%`,top:`${((t-sp.y)/v.height)*100}%`,width:`${((r-l)/v.width)*100}%`,height:`${((bt-t)/v.height)*100}%`} as CSSProperties};
+  }).filter((x): x is NonNullable<typeof x> => x !== null);
 
   return (
     <section className="capture-result">
@@ -175,8 +181,12 @@ export function CaptureViewer({
                 alt={`Capture of ${visible.title || visible.finalUrl}`}
               />
 
+              {overlays && occlusionsToRender.map(({region,style}) => (
+                <div key={region.id} className="occlusion-overlay" style={{...style,zIndex:Math.max(1,Math.min(2147480000,region.stackingOrder))}} title={`${region.kind} occlusion`} />
+              ))}
+
               {overlays &&
-                orderedOverlays.map(({ interaction, style }, overlayIndex) => {
+                orderedOverlays.map(({ interaction, style }) => {
                   const isSelected = selected?.id === interaction.id;
 
                   return (
@@ -186,7 +196,7 @@ export function CaptureViewer({
                       className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${
                         isSelected ? " interaction-overlay--selected" : ""
                       }`}
-                      style={{ ...style, zIndex: 10 + overlayIndex }}
+                      style={{ ...style, zIndex: Math.max(2, Math.min(2147480001, interaction.stackingOrder + 1)) }}
                       title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
                       onClick={() => select(interaction)}
                     />

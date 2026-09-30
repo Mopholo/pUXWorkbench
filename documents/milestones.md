@@ -270,6 +270,10 @@ Execute safe interactions and detect UI changes that do not necessarily produce 
 - Preserve both full-page and viewport screenshots so scroll-dependent UI can be analyzed faithfully.
 - Surface execution progress while browser work is running.
 - Use a capture-first workbench layout with independent capture and inspector scrolling.
+- Preserve the user's Viewport / Full Page viewing preference while moving between captured states.
+- Observe new browser pages/windows created by interactions and capture the resulting target page rather than recapturing the opener.
+- Classify navigation scope as same-host, subdomain, or external so later crawl policy can decide traversal depth without losing the immediate target capture.
+- Record visually occluding fixed/sticky/dialog surfaces so lower-layer interaction overlays cannot receive clicks through banners, dialogs, drawers, or similar UI.
 
 - Execute interactions from the UI state currently being viewed, allowing state-to-state chaining.
 - Prefer semantic interaction reconstruction and use captured CSS selectors only as a fallback.

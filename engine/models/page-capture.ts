@@ -6,13 +6,13 @@ export interface PageInteraction {
   id: string; elementType: string; role: string | null; accessibleName: string; visibleText: string;
   href: string | null; disabled: boolean; formAction: string | null; formMethod: string | null; inputType: string | null;
   executionSafety: InteractionExecutionSafety; executionReason: string; locator: InteractionLocator;
-  bounds: ElementBounds; normalizedBounds: NormalizedElementBounds;
-  stackingOrder: number;
+  bounds: ElementBounds; normalizedBounds: NormalizedElementBounds; stackingOrder: number;
 }
+export interface OcclusionRegion { id:string; bounds:ElementBounds; normalizedBounds:NormalizedElementBounds; stackingOrder:number; kind:string; }
 export interface PageCapture {
   requestedUrl: string; finalUrl: string; title: string; capturedAt: string;
   viewport: { width: number; height: number }; document: { width: number; height: number };
-  scrollPosition: { x: number; y: number }; interactions: PageInteraction[];
+  scrollPosition: { x: number; y: number }; interactions: PageInteraction[]; occlusions: OcclusionRegion[];
   screenshot: { mediaType: "image/png"; dataUrl: string };
   viewportScreenshot: { mediaType: "image/png"; dataUrl: string };
 }
