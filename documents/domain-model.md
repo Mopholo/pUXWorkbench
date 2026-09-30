@@ -74,6 +74,22 @@ Multiple UI States may share the same URL.
 
 A UI State records enough information to reconstruct and reason about what the user could see and interact with at that moment.
 
+### State provenance and reconstruction
+
+A URL alone is not sufficient to reconstruct a UI State. A derived state may depend on earlier interactions such as opening a menu, expanding a product list, selecting a tab, or navigating through another captured state.
+
+Each capture therefore preserves reconstruction provenance: a base URL plus the ordered interaction steps and source scroll positions required to reproduce the state. Execution from a derived state replays that provenance before resolving the newly selected interaction.
+
+```text
+Base State
+  ↓ expand products
+Derived State
+  ↓ Blogger
+Target State
+```
+
+Provenance is deterministic observed history, not AI-derived interpretation.
+
 Typical properties include:
 
 ```text

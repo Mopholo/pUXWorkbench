@@ -386,3 +386,8 @@ Interaction execution uses three classifications: SAFE, REVIEW, and BLOCKED. Det
 ## Capture Evidence
 
 A capture preserves both a full-page screenshot and the current viewport screenshot. Full-page evidence supports layout analysis; viewport evidence preserves scroll-dependent, sticky, floating, and anchor-navigation states.
+
+
+## State Reconstruction
+
+Derived UI states carry deterministic reconstruction provenance. The engine reconstructs a state from its base URL and ordered interaction path before executing a subsequent interaction; it must not assume that reloading the current URL reproduces the same UI state.

@@ -10,10 +10,13 @@ export interface PageInteraction {
   hitTestRegions: ElementBounds[]; hitTestSampled: boolean;
 }
 export interface OcclusionRegion { id:string; bounds:ElementBounds; normalizedBounds:NormalizedElementBounds; stackingOrder:number; kind:string; }
+export interface ReconstructionStep { interaction: PageInteraction; allowReview: boolean; sourceScrollPosition: { x: number; y: number }; }
+export interface CaptureReconstruction { baseUrl: string; steps: ReconstructionStep[]; }
 export interface PageCapture {
   requestedUrl: string; finalUrl: string; title: string; capturedAt: string;
   viewport: { width: number; height: number }; document: { width: number; height: number };
   scrollPosition: { x: number; y: number }; interactions: PageInteraction[]; occlusions: OcclusionRegion[];
+  reconstruction: CaptureReconstruction;
   screenshot: { mediaType: "image/png"; dataUrl: string };
   viewportScreenshot: { mediaType: "image/png"; dataUrl: string };
 }
