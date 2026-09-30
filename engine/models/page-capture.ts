@@ -7,6 +7,7 @@ export interface PageInteraction {
   href: string | null; disabled: boolean; formAction: string | null; formMethod: string | null; inputType: string | null;
   executionSafety: InteractionExecutionSafety; executionReason: string; locator: InteractionLocator;
   bounds: ElementBounds; normalizedBounds: NormalizedElementBounds; stackingOrder: number;
+  hitTestRegions: ElementBounds[]; hitTestSampled: boolean;
 }
 export interface OcclusionRegion { id:string; bounds:ElementBounds; normalizedBounds:NormalizedElementBounds; stackingOrder:number; kind:string; }
 export interface PageCapture {

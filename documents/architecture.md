@@ -215,6 +215,8 @@ Interactive controls may include:
 
 Each discovered interaction should preserve semantic identity and geometry.
 
+Interaction hit availability should be derived from the browser's rendered hit testing where possible. Fixed/sticky positioning alone is not sufficient evidence that an element occludes everything inside its bounding rectangle. Visual outlines and pointer hit regions are separate concerns: outlines describe discovered geometry, while browser-derived hit regions describe where the original page would actually deliver pointer input.
+
 ## State Discovery
 
 A URL is not equivalent to a UI state.

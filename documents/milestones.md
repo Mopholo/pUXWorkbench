@@ -273,7 +273,9 @@ Execute safe interactions and detect UI changes that do not necessarily produce 
 - Preserve the user's Viewport / Full Page viewing preference while moving between captured states.
 - Observe new browser pages/windows created by interactions and capture the resulting target page rather than recapturing the opener.
 - Classify navigation scope as same-host, subdomain, or external so later crawl policy can decide traversal depth without losing the immediate target capture.
-- Record visually occluding fixed/sticky/dialog surfaces so lower-layer interaction overlays cannot receive clicks through banners, dialogs, drawers, or similar UI.
+- Record visual occlusion evidence, but derive overlay hit availability from browser hit-testing (`elementFromPoint`) rather than assuming fixed/sticky containers occlude their full bounds.
+- Keep long-running Node/Playwright work off the Tauri command thread so Capture/Execute progress remains visibly animated.
+- Treat product/entity names (for example, “Google Pay”) separately from transactional action phrases when classifying safety.
 
 - Execute interactions from the UI state currently being viewed, allowing state-to-state chaining.
 - Prefer semantic interaction reconstruction and use captured CSS selectors only as a fallback.

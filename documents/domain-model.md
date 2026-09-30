@@ -200,7 +200,7 @@ Transitions are classified as navigation, structural, view, or none.
 
 Navigation transitions also record whether the target opened in a new browser page/window and whether the destination is the same host, a related subdomain, or external. This observation is separate from crawl policy: pUXWorkbench may capture the immediate target while later traversal rules determine whether exploration continues.
 
-Visual captures may include Occlusion Regions: non-interactive surfaces such as cookie banners, dialogs, drawers, popovers, and sticky/fixed containers that prevent pointer interaction with lower visual layers. Occlusion is evidence about hit-testing and stacking, not an Interaction itself.
+Visual captures may include Occlusion Regions as semantic evidence about banners, dialogs, drawers, popovers, and other stacked surfaces. Overlay clickability is not inferred from a fixed/sticky rectangle alone: pUXWorkbench records browser-derived hit-test regions for interactions using the rendered page’s actual hit testing. This prevents transparent or oversized containers from falsely blocking interactions while still respecting real occlusion.
 
 Transitions form the behavioral graph of the application.
 

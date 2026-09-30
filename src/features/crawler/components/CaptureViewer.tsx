@@ -182,26 +182,63 @@ export function CaptureViewer({
               />
 
               {overlays && occlusionsToRender.map(({region,style}) => (
-                <div key={region.id} className="occlusion-overlay" style={{...style,zIndex:Math.max(1,Math.min(2147480000,region.stackingOrder))}} title={`${region.kind} occlusion`} />
+                <div key={region.id} className="occlusion-overlay" style={{...style,zIndex:Math.max(1,Math.min(2147480000,region.stackingOrder))}} aria-hidden="true" />
               ))}
 
-              {overlays &&
-                orderedOverlays.map(({ interaction, style }) => {
-                  const isSelected = selected?.id === interaction.id;
+              {overlays && orderedOverlays.map(({ interaction, style }) => {
+                const isSelected = selected?.id === interaction.id;
+                return (
+                  <div
+                    key={`outline-${interaction.id}`}
+                    className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${isSelected ? " interaction-overlay--selected" : ""}`}
+                    style={{ ...style, zIndex: Math.max(2, Math.min(2147480001, interaction.stackingOrder + 1)) }}
+                    aria-hidden="true"
+                  />
+                );
+              })}
 
+              {overlays && orderedOverlays.flatMap(({ interaction }) => {
+                const regions = interaction.hitTestSampled ? interaction.hitTestRegions : [interaction.bounds];
+                return regions.map((region, regionIndex) => {
+                  const viewportLeft = visible.scrollPosition.x;
+                  const viewportTop = visible.scrollPosition.y;
+                  const viewportRight = viewportLeft + visible.viewport.width;
+                  const viewportBottom = viewportTop + visible.viewport.height;
+                  let left = region.x;
+                  let top = region.y;
+                  let right = region.x + region.width;
+                  let bottom = region.y + region.height;
+                  let regionStyle: CSSProperties;
+                  if (mode === "viewport") {
+                    left = Math.max(left, viewportLeft); top = Math.max(top, viewportTop);
+                    right = Math.min(right, viewportRight); bottom = Math.min(bottom, viewportBottom);
+                    if (right <= left || bottom <= top) return null;
+                    regionStyle = {
+                      left: `${((left - viewportLeft) / visible.viewport.width) * 100}%`,
+                      top: `${((top - viewportTop) / visible.viewport.height) * 100}%`,
+                      width: `${((right - left) / visible.viewport.width) * 100}%`,
+                      height: `${((bottom - top) / visible.viewport.height) * 100}%`,
+                    };
+                  } else {
+                    regionStyle = {
+                      left: `${(left / visible.document.width) * 100}%`,
+                      top: `${(top / visible.document.height) * 100}%`,
+                      width: `${((right - left) / visible.document.width) * 100}%`,
+                      height: `${((bottom - top) / visible.document.height) * 100}%`,
+                    };
+                  }
                   return (
                     <button
-                      key={interaction.id}
+                      key={`hit-${interaction.id}-${regionIndex}`}
                       type="button"
-                      className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${
-                        isSelected ? " interaction-overlay--selected" : ""
-                      }`}
-                      style={{ ...style, zIndex: Math.max(2, Math.min(2147480001, interaction.stackingOrder + 1)) }}
+                      className="interaction-hit-region"
+                      style={{ ...regionStyle, zIndex: Math.max(3, Math.min(2147483640, interaction.stackingOrder + 2)) }}
                       title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
                       onClick={() => select(interaction)}
                     />
                   );
-                })}
+                }).filter(Boolean);
+              })}
             </div>
           </div>
 
