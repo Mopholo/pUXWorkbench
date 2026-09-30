@@ -79,6 +79,7 @@ Typical properties include:
 ```text
 id
 pageId
+captureProfileId
 url
 viewport
 scrollPosition
@@ -86,6 +87,28 @@ capture
 visibleComponents
 interactions
 ```
+
+## Capture Profile
+
+A Capture Profile defines the observation context under which a Site is captured. Authentication is one dimension of a profile, not a separate kind of Site.
+
+Typical profile dimensions include authentication state, account role, entitlement, locale, theme, viewport class, and feature/experiment state.
+
+Examples:
+
+```text
+Anonymous / Desktop / en-CA
+Authenticated / Free / Desktop / en-CA
+Authenticated / Admin / Desktop / en-CA
+```
+
+Authentication credentials are not part of the domain model. A user authenticates directly in a visible browser and pUXWorkbench persists reusable browser session state for the profile.
+
+The same Page captured under different Capture Profiles may be compared to derive context differences.
+
+## View State
+
+A UI State may include a View State: scroll position, sticky/floating component configuration, viewport-visible content, and other presentation changes caused by scrolling or anchor navigation. View-state transitions are distinct from structural transitions such as opening a modal.
 
 ## Component
 
@@ -132,7 +155,7 @@ Scroll
 
 An Interaction belongs to a source UI State.
 
-An Interaction may produce a Transition.
+An Interaction may produce a Transition. Interactions carry a safety classification: SAFE, REVIEW, or BLOCKED. REVIEW interactions require explicit user approval; that override is recorded as classifier feedback. BLOCKED interactions represent known unsafe or externally consequential actions.
 
 An Interaction should preserve both semantic information and capture geometry.
 
@@ -172,6 +195,8 @@ Home
   ▼
 Home + Login Modal
 ```
+
+Transitions are classified as navigation, structural, view, or none.
 
 Transitions form the behavioral graph of the application.
 

@@ -257,13 +257,19 @@ They must remain aligned when the viewer changes size.
 
 # Milestone 3 — UI State Capture
 
-**Status: In Progress**
+**Status: In Progress — Revised for retest**
 
 ## Goal
 
 Execute safe interactions and detect UI changes that do not necessarily produce URL navigation.
 
 ### Milestone 3 validation refinements
+
+- Classify interactions as SAFE, REVIEW, or BLOCKED; allow explicit human override of REVIEW interactions and record the override on the transition.
+- Distinguish navigation, structural, and view-state transitions, including anchor/scroll changes.
+- Preserve both full-page and viewport screenshots so scroll-dependent UI can be analyzed faithfully.
+- Surface execution progress while browser work is running.
+- Use a capture-first workbench layout with independent capture and inspector scrolling.
 
 - Execute interactions from the UI state currently being viewed, allowing state-to-state chaining.
 - Prefer semantic interaction reconstruction and use captured CSS selectors only as a fallback.
@@ -393,7 +399,28 @@ The reconstructed experience does not require the original website to remain ope
 
 ---
 
-# Milestone 5 — Site Crawl
+# Milestone 5 — Capture Profiles & Authentication
+
+## Goal
+
+Allow a Site to be observed under explicit reusable contexts such as anonymous and authenticated sessions, without pUXWorkbench collecting user passwords.
+
+## Responsibilities
+
+- Create named Capture Profiles.
+- Launch a visible browser for user-controlled sign-in.
+- Persist reusable browser session state for a profile.
+- Associate UI States and Captures with a profile.
+- Compare the same Page across profiles.
+- Support future role/entitlement/locale/theme dimensions without changing the Site model.
+
+## Acceptance Criteria
+
+A user can create an anonymous profile and an authenticated profile, sign in directly on the target site, capture the same page under both contexts, and inspect their observed differences.
+
+---
+
+# Milestone 6 — Site Crawl
 
 ## Goal
 
@@ -449,7 +476,7 @@ Given a starting URL and crawl limits, pUXWorkbench can discover and capture mul
 
 ---
 
-# Milestone 6 — Visual Site Graph
+# Milestone 7 — Visual Site Graph
 
 ## Goal
 
@@ -510,7 +537,7 @@ and move between the graph and screenshot navigator.
 
 ---
 
-# Milestone 7 — Component Recognition
+# Milestone 8 — Component Recognition
 
 ## Goal
 
@@ -550,7 +577,7 @@ The system can identify major UI components and associate them with the states i
 
 ---
 
-# Milestone 8 — Flow Recognition
+# Milestone 9 — Flow Recognition
 
 ## Goal
 
@@ -595,7 +622,7 @@ The system can group relevant states and transitions into named functional flows
 
 ---
 
-# Milestone 9 — Pattern Extraction
+# Milestone 10 — Pattern Extraction
 
 ## Goal
 
@@ -652,7 +679,7 @@ Patterns contain generalized structure and behavior rather than source-site bran
 
 ---
 
-# Milestone 10 — Pattern Library
+# Milestone 11 — Pattern Library
 
 ## Goal
 
@@ -694,7 +721,7 @@ Patterns can be browsed independently from the source sites from which they were
 
 ---
 
-# Milestone 11 — Template Model
+# Milestone 12 — Template Model
 
 ## Goal
 
@@ -734,7 +761,7 @@ A Template can exist independently from:
 
 ---
 
-# Milestone 12 — Project Generation
+# Milestone 13 — Project Generation
 
 ## Goal
 
@@ -825,6 +852,9 @@ UI State Capture
        ↓
 Milestone 4
 Interactive Navigation
+       ↓
+Milestone 5
+Capture Profiles & Authentication
 ```
 
 These first five milestones establish the core technical proof of the product.

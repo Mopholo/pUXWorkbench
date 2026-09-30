@@ -3,11 +3,12 @@ import { CaptureForm } from "../features/crawler/components/CaptureForm";
 import { CaptureViewer } from "../features/crawler/components/CaptureViewer";
 import { useInteractionExecution } from "../features/crawler/hooks/useInteractionExecution";
 import { usePageCapture } from "../features/crawler/hooks/usePageCapture";
+import { AppErrorBoundary } from "./AppErrorBoundary";
 
-function App() {
+function Workbench() {
   const { capture, isCapturing, error, runCapture } = usePageCapture();
   const {
-    result: executionResult,
+    result,
     isExecuting,
     error: executionError,
     runInteraction,
@@ -15,31 +16,23 @@ function App() {
     resetExecution,
   } = useInteractionExecution();
 
-  async function captureUrl(url: string): Promise<void> {
+  async function captureUrl(url: string) {
     resetExecution();
     await runCapture(url);
   }
 
   return (
     <main className="app-shell">
-      <header className="app-header">
-        <p className="app-header__eyebrow">pUXWorkbench</p>
-        <h1>UI State Capture</h1>
-        <p className="app-header__description">
-          Capture a page, inspect its interactions, explicitly execute eligible controls, and record the resulting UI state and transition.
-        </p>
-      </header>
-
       <section className="capture-panel">
         <CaptureForm isCapturing={isCapturing || isExecuting} onCapture={captureUrl} />
-        {error && <p className="capture-error" role="alert">{error}</p>}
+        {error && <p className="capture-error">{error}</p>}
       </section>
 
       {capture ? (
         <CaptureViewer
           key={capture.capturedAt}
           capture={capture}
-          executionResult={executionResult}
+          executionResult={result}
           isExecuting={isExecuting}
           executionError={executionError}
           onInteractionSelected={clearExecutionError}
@@ -47,11 +40,19 @@ function App() {
         />
       ) : (
         <section className="empty-state">
-          <h2>No capture yet</h2>
-          <p>Enter a URL above to capture a source state and discover its interactive elements.</p>
+          <h2>pUXWorkbench</h2>
+          <p>Enter a source URL to begin capturing UI states.</p>
         </section>
       )}
     </main>
+  );
+}
+
+function App() {
+  return (
+    <AppErrorBoundary>
+      <Workbench />
+    </AppErrorBoundary>
   );
 }
 

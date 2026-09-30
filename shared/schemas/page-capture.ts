@@ -1,62 +1,7 @@
 import { z } from "zod";
-
-const elementBoundsSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  width: z.number().nonnegative(),
-  height: z.number().nonnegative(),
-});
-
-const normalizedElementBoundsSchema = z.object({
-  xRatio: z.number(),
-  yRatio: z.number(),
-  widthRatio: z.number().nonnegative(),
-  heightRatio: z.number().nonnegative(),
-});
-
-export const pageInteractionSchema = z.object({
-  id: z.string().min(1),
-  elementType: z.string().min(1),
-  role: z.string().nullable(),
-  accessibleName: z.string(),
-  visibleText: z.string(),
-  href: z.string().nullable(),
-  disabled: z.boolean(),
-  formAction: z.string().nullable(),
-  formMethod: z.string().nullable(),
-  inputType: z.string().nullable(),
-  executionSafety: z.enum(["allowed", "blocked"]),
-  executionReason: z.string().min(1),
-  locator: z.object({
-    tagName: z.string().min(1),
-    id: z.string().nullable(),
-    name: z.string().nullable(),
-    testId: z.string().nullable(),
-    selector: z.string().min(1),
-  }),
-  bounds: elementBoundsSchema,
-  normalizedBounds: normalizedElementBoundsSchema,
-});
-
-export const pageCaptureSchema = z.object({
-  requestedUrl: z.string().url(),
-  finalUrl: z.string().url(),
-  title: z.string(),
-  capturedAt: z.string(),
-  viewport: z.object({
-    width: z.number().positive(),
-    height: z.number().positive(),
-  }),
-  document: z.object({
-    width: z.number().positive(),
-    height: z.number().positive(),
-  }),
-  interactions: z.array(pageInteractionSchema),
-  screenshot: z.object({
-    mediaType: z.literal("image/png"),
-    dataUrl: z.string().startsWith("data:image/png;base64,"),
-  }),
-});
-
-export type PageInteraction = z.infer<typeof pageInteractionSchema>;
-export type PageCapture = z.infer<typeof pageCaptureSchema>;
+const elementBoundsSchema=z.object({x:z.number(),y:z.number(),width:z.number().nonnegative(),height:z.number().nonnegative()});
+const normalizedElementBoundsSchema=z.object({xRatio:z.number(),yRatio:z.number(),widthRatio:z.number().nonnegative(),heightRatio:z.number().nonnegative()});
+const pngSchema=z.object({mediaType:z.literal("image/png"),dataUrl:z.string().startsWith("data:image/png;base64,")});
+export const pageInteractionSchema=z.object({id:z.string().min(1),elementType:z.string().min(1),role:z.string().nullable(),accessibleName:z.string(),visibleText:z.string(),href:z.string().nullable(),disabled:z.boolean(),formAction:z.string().nullable(),formMethod:z.string().nullable(),inputType:z.string().nullable(),executionSafety:z.enum(["safe","review","blocked"]),executionReason:z.string().min(1),locator:z.object({tagName:z.string().min(1),id:z.string().nullable(),name:z.string().nullable(),testId:z.string().nullable(),selector:z.string().min(1)}),bounds:elementBoundsSchema,normalizedBounds:normalizedElementBoundsSchema});
+export const pageCaptureSchema=z.object({requestedUrl:z.string().url(),finalUrl:z.string().url(),title:z.string(),capturedAt:z.string(),viewport:z.object({width:z.number().positive(),height:z.number().positive()}),document:z.object({width:z.number().positive(),height:z.number().positive()}),scrollPosition:z.object({x:z.number(),y:z.number()}),interactions:z.array(pageInteractionSchema),screenshot:pngSchema,viewportScreenshot:pngSchema});
+export type PageInteraction=z.infer<typeof pageInteractionSchema>; export type PageCapture=z.infer<typeof pageCaptureSchema>;

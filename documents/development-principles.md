@@ -304,3 +304,7 @@ When architecture changes:
 5. Avoid maintaining obsolete abstractions solely for backward compatibility during early development.
 
 The documentation and implementation should describe the same system.
+
+## Human Safety Feedback
+
+When deterministic interaction safety is uncertain, classify the action for review rather than forcing it into safe or blocked. Explicit user overrides are evidence and should be recorded. Human feedback may improve future rules, but a single site-specific decision must not automatically become a global safety rule.

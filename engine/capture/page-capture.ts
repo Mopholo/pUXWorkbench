@@ -1,51 +1,5 @@
-import type { Page } from "playwright";
-import { discoverInteractions } from "../interactions/interaction-discovery.ts";
-import type { PageCapture } from "../models/page-capture.ts";
-
-export async function waitForCaptureStability(page: Page): Promise<void> {
-  await page.waitForLoadState("domcontentloaded", { timeout: 5_000 }).catch(() => undefined);
-  await page.waitForLoadState("networkidle", { timeout: 3_000 }).catch(() => undefined);
-  await page.evaluate(async () => {
-    if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-  }).catch(() => undefined);
-
-  // Give entrance transitions, lazy layout work, and short CSS animations time to settle
-  // before geometry and pixels are sampled from the same visual state.
-  await page.waitForTimeout(800);
-}
-
-export async function captureCurrentPage(page: Page, requestedUrl: string): Promise<PageCapture> {
-  await waitForCaptureStability(page);
-
-  const title = await page.title();
-  const viewport = page.viewportSize();
-  if (!viewport) throw new Error("The browser page does not have a configured viewport.");
-
-  const documentSize = await page.evaluate(() => ({
-    width: Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth ?? 0),
-    height: Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0),
-  }));
-
-  const interactions = await discoverInteractions(page, documentSize);
-  const screenshot = await page.screenshot({ fullPage: true, type: "png" });
-
-  return {
-    requestedUrl,
-    finalUrl: page.url(),
-    title,
-    capturedAt: new Date().toISOString(),
-    viewport,
-    document: documentSize,
-    interactions,
-    screenshot: {
-      mediaType: "image/png",
-      dataUrl: `data:image/png;base64,${screenshot.toString("base64")}`,
-    },
-  };
-}
-
-export async function capturePage(page: Page, requestedUrl: string): Promise<PageCapture> {
-  await page.goto(requestedUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  return captureCurrentPage(page, requestedUrl);
-}
+import type { Page } from "playwright"; import { discoverInteractions } from "../interactions/interaction-discovery.ts"; import type { PageCapture } from "../models/page-capture.ts";
+async function layoutSignature(page:Page){return page.evaluate(()=>{const els=Array.from(document.querySelectorAll("a[href],button,input,select,textarea,[role],[aria-controls]")).filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}).slice(0,250);return els.map(e=>{const r=e.getBoundingClientRect();return `${e.tagName}:${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`}).join("|");});}
+export async function waitForCaptureStability(page:Page):Promise<void>{await page.waitForLoadState("domcontentloaded",{timeout:5000}).catch(()=>undefined);await page.waitForLoadState("networkidle",{timeout:3000}).catch(()=>undefined);await page.evaluate(async()=>{if(document.fonts?.ready)await document.fonts.ready;}).catch(()=>undefined);let previous="",stable=0;for(let i=0;i<8&&stable<2;i++){await page.waitForTimeout(250);const current=await layoutSignature(page).catch(()=>"");stable=current&&current===previous?stable+1:0;previous=current;}}
+export async function captureCurrentPage(page:Page,requestedUrl:string):Promise<PageCapture>{await waitForCaptureStability(page);const title=await page.title(),viewport=page.viewportSize();if(!viewport)throw new Error("The browser page does not have a configured viewport.");const scrollPosition=await page.evaluate(()=>({x:scrollX,y:scrollY}));const documentSize=await page.evaluate(()=>({width:Math.max(document.documentElement.scrollWidth,document.body?.scrollWidth??0),height:Math.max(document.documentElement.scrollHeight,document.body?.scrollHeight??0)}));const interactions=await discoverInteractions(page,documentSize);const viewportShot=await page.screenshot({fullPage:false,type:"png"});const fullShot=await page.screenshot({fullPage:true,type:"png"});return{requestedUrl,finalUrl:page.url(),title,capturedAt:new Date().toISOString(),viewport,document:documentSize,scrollPosition,interactions,screenshot:{mediaType:"image/png",dataUrl:`data:image/png;base64,${fullShot.toString("base64")}`},viewportScreenshot:{mediaType:"image/png",dataUrl:`data:image/png;base64,${viewportShot.toString("base64")}`}};}
+export async function capturePage(page:Page,requestedUrl:string){await page.goto(requestedUrl,{waitUntil:"domcontentloaded",timeout:30000});return captureCurrentPage(page,requestedUrl);}

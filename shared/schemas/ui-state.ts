@@ -1,36 +1,4 @@
-import { z } from "zod";
-import { pageCaptureSchema, pageInteractionSchema } from "./page-capture";
-
-export const uiStateSchema = z.object({
-  id: z.string().min(1),
-  pageUrl: z.string().url(),
-  scrollPosition: z.object({ x: z.number(), y: z.number() }),
-  capture: pageCaptureSchema,
-  parentStateId: z.string().nullable(),
-  triggeringInteractionId: z.string().nullable(),
-});
-
-export const uiTransitionSchema = z.object({
-  id: z.string().min(1),
-  sourceStateId: z.string().min(1),
-  targetStateId: z.string().min(1),
-  interaction: pageInteractionSchema,
-  changed: z.boolean(),
-  changeSignals: z.object({
-    urlChanged: z.boolean(),
-    titleChanged: z.boolean(),
-    documentSizeChanged: z.boolean(),
-    interactionSetChanged: z.boolean(),
-    screenshotChanged: z.boolean(),
-  }),
-});
-
-export const interactionExecutionResultSchema = z.object({
-  sourceState: uiStateSchema,
-  targetState: uiStateSchema,
-  transition: uiTransitionSchema,
-});
-
-export type UIState = z.infer<typeof uiStateSchema>;
-export type UITransition = z.infer<typeof uiTransitionSchema>;
-export type InteractionExecutionResult = z.infer<typeof interactionExecutionResultSchema>;
+import {z} from "zod";import{pageCaptureSchema,pageInteractionSchema}from"./page-capture";
+export const uiStateSchema=z.object({id:z.string().min(1),pageUrl:z.string().url(),scrollPosition:z.object({x:z.number(),y:z.number()}),capture:pageCaptureSchema,parentStateId:z.string().nullable(),triggeringInteractionId:z.string().nullable()});
+export const uiTransitionSchema=z.object({id:z.string().min(1),sourceStateId:z.string().min(1),targetStateId:z.string().min(1),interaction:pageInteractionSchema,changed:z.boolean(),kind:z.enum(["navigation","structural","view","none"]),safetyOverrideApplied:z.boolean(),changeSignals:z.object({urlChanged:z.boolean(),titleChanged:z.boolean(),documentSizeChanged:z.boolean(),interactionSetChanged:z.boolean(),screenshotChanged:z.boolean(),scrollChanged:z.boolean()})});
+export const interactionExecutionResultSchema=z.object({sourceState:uiStateSchema,targetState:uiStateSchema,transition:uiTransitionSchema});export type UIState=z.infer<typeof uiStateSchema>;export type UITransition=z.infer<typeof uiTransitionSchema>;export type InteractionExecutionResult=z.infer<typeof interactionExecutionResultSchema>;

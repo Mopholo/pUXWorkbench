@@ -370,3 +370,17 @@ Lower-level modules must not depend on higher-level presentation concerns.
 The normalized UI and pattern models are the center of the system.
 
 Screenshots, DOM data, AI analysis, and generated code are inputs or outputs around those models rather than substitutes for them.
+
+## Capture Profiles and Authentication
+
+Website observations belong to a Capture Profile. Profiles allow the same Site to be observed anonymously, authenticated, under different roles/entitlements, locales, themes, or feature states. Authentication is performed by the user directly in a visible browser; pUXWorkbench must not collect or persist passwords. Reusable browser session state may be persisted for an explicitly created profile.
+
+Profile comparisons are derived analysis. Neither anonymous nor authenticated capture is inherently canonical.
+
+## Interaction Safety and Human Feedback
+
+Interaction execution uses three classifications: SAFE, REVIEW, and BLOCKED. Deterministic rules classify known low-risk and known consequential actions. Ambiguous actions are REVIEW, allowing a human to explicitly approve execution. Overrides are recorded as evidence for future classifier improvement and must not silently convert known destructive actions into automatic execution.
+
+## Capture Evidence
+
+A capture preserves both a full-page screenshot and the current viewport screenshot. Full-page evidence supports layout analysis; viewport evidence preserves scroll-dependent, sticky, floating, and anchor-navigation states.
