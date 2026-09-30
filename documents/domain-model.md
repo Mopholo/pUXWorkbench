@@ -447,3 +447,7 @@ Template ≠ Generated Project
 ```
 
 These distinctions are part of the architecture and should not be collapsed merely for implementation convenience.
+
+## Selection controls
+
+Selection controls include native HTML `select` elements and custom/ARIA combobox, listbox, menu-trigger, and option patterns. Opening a selection control is a safe state-revealing interaction. Individual choices remain distinct interactions because choosing a locale, device, variant, or account can change route, content, or application state. Native browser/OS popup pixels are not guaranteed to exist in a page screenshot, so semantic discovery of the control and its choices is authoritative evidence even when the popup itself is outside the captured page surface.

@@ -19,6 +19,8 @@ function candidates(page: Page, i: PageInteraction): Locator[] {
   if (i.role && i.accessibleName) c.push(page.getByRole(i.role as Parameters<Page["getByRole"]>[0], { name: i.accessibleName, exact: true }));
   if (i.elementType === "a" && i.accessibleName) c.push(page.getByRole("link", { name: i.accessibleName, exact: true }));
   if (i.elementType === "button" && i.accessibleName) c.push(page.getByRole("button", { name: i.accessibleName, exact: true }));
+  if (i.elementType === "select" && i.accessibleName) c.push(page.getByRole("combobox", { name: i.accessibleName, exact: true }));
+  if (i.elementType === "select") c.push(page.locator("select"));
   if (i.href && i.elementType === "a") c.push(page.locator(`a[href=${JSON.stringify(i.href)}]`));
   if (i.locator.name) c.push(page.locator(`${i.locator.tagName}[name=${JSON.stringify(i.locator.name)}]`));
   if (i.visibleText) c.push(page.locator(i.locator.tagName).filter({ hasText: i.visibleText }));

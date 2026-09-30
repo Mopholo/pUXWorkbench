@@ -4,7 +4,8 @@ import type { PageInteraction } from "../models/page-capture.ts";
 const INTERACTIVE_SELECTOR = [
   "a[href]", "button", "input", "select", "textarea", "[role='button']", "[role='link']",
   "[role='tab']", "[role='checkbox']", "[role='radio']", "[role='switch']", "[role='menuitem']",
-  "[role='option']", "[role='combobox']", "[aria-controls]",
+  "[role='option']", "[role='combobox']", "[role='listbox']", "[aria-controls]",
+  "[aria-haspopup='listbox']", "[aria-haspopup='menu']",
 ].join(",");
 
 const BLOCKED_ACTION_PATTERN = /\b(delete|destroy|purchase|buy now|checkout|submit payment|make payment|place order|unsubscribe|cancel subscription|sign out|log out|logout)\b/i;
@@ -50,6 +51,7 @@ export async function discoverInteractions(page: Page, documentSize: { width: nu
 
     function visibleTextFor(element: Element) {
       if (element instanceof HTMLInputElement) return element.value || element.placeholder || "";
+      if (element instanceof HTMLSelectElement) return element.selectedOptions[0]?.textContent?.trim() || "";
       return (element.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 300);
     }
 
@@ -61,9 +63,13 @@ export async function discoverInteractions(page: Page, documentSize: { width: nu
         const label = labelledBy.split(/\s+/).map((id) => document.getElementById(id)?.textContent?.trim() ?? "").filter(Boolean).join(" ");
         if (label) return label;
       }
-      if (element instanceof HTMLInputElement && element.labels?.length) {
+      if ((element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) && element.labels?.length) {
         const label = Array.from(element.labels).map((item) => item.textContent?.trim() ?? "").filter(Boolean).join(" ");
         if (label) return label;
+      }
+      if (element instanceof HTMLSelectElement) {
+        const selected = element.selectedOptions[0]?.textContent?.trim();
+        if (selected) return element.getAttribute("name")?.trim() || selected;
       }
       return element.getAttribute("title")?.trim() || visibleText;
     }
@@ -104,7 +110,10 @@ export async function discoverInteractions(page: Page, documentSize: { width: nu
           const x = left + cellWidth / 2;
           const y = top + cellHeight / 2;
           const topElement = document.elementFromPoint(x, y);
-          const reachable = Boolean(topElement && (topElement === element || element.contains(topElement)));
+          const reachable = Boolean(topElement && (
+            topElement === element || element.contains(topElement) ||
+            (element instanceof HTMLSelectElement && topElement.closest("select") === element)
+          ));
           if (reachable) regions.push({ x: left + scrollX, y: top + scrollY, width: cellWidth, height: cellHeight });
         }
       }

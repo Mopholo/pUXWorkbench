@@ -257,7 +257,7 @@ They must remain aligned when the viewer changes size.
 
 # Milestone 3 — UI State Capture
 
-**Status: In Progress — Revised for retest**
+**Status: In Progress — Final interaction-discovery retest**
 
 ## Goal
 
@@ -282,6 +282,8 @@ Execute safe interactions and detect UI changes that do not necessarily produce 
 - Prefer semantic interaction reconstruction and use captured CSS selectors only as a fallback.
 - Permit non-submitting form controls to expose additional UI state while continuing to block submission, reset, file selection, destructive, and transactional actions.
 - Clear a prior execution error when a different interaction is selected.
+- Discover native `select` controls and ARIA/custom combobox, listbox, menu-trigger, and option controls as state-revealing interactions. Opening a selector is safe exploration; choosing a locale/variant is a distinct interaction whose traversal can later be policy-controlled.
+- Treat native browser-rendered select popups as semantic interaction state: the control and choices must be captured even when the operating system/browser popup itself is not part of the page screenshot surface.
 - Wait for fonts, layout work, and short entrance animations before recording geometry and screenshots.
 - Keep Playwright current enough that captured Chromium behavior reflects contemporary production sites.
 
