@@ -113,6 +113,10 @@ export function CaptureViewer({
           .map((interaction) => getViewportOverlay(visible, interaction))
           .filter((overlay): overlay is ViewportOverlay => overlay !== null);
 
+  const orderedOverlays = [...overlaysToRender].sort(
+    (left, right) => left.interaction.stackingOrder - right.interaction.stackingOrder,
+  );
+
   return (
     <section className="capture-result">
       <div className="capture-topbar">
@@ -172,7 +176,7 @@ export function CaptureViewer({
               />
 
               {overlays &&
-                overlaysToRender.map(({ interaction, style }) => {
+                orderedOverlays.map(({ interaction, style }, overlayIndex) => {
                   const isSelected = selected?.id === interaction.id;
 
                   return (
@@ -182,7 +186,7 @@ export function CaptureViewer({
                       className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${
                         isSelected ? " interaction-overlay--selected" : ""
                       }`}
-                      style={style}
+                      style={{ ...style, zIndex: 10 + overlayIndex }}
                       title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
                       onClick={() => select(interaction)}
                     />
@@ -209,13 +213,6 @@ export function CaptureViewer({
         />
       </div>
 
-      {isExecuting && (
-        <div className="execution-overlay">
-          <span className="spinner spinner--large" />
-          <strong>Executing interaction…</strong>
-          <span>Waiting for the resulting UI to stabilize and capturing the new state.</span>
-        </div>
-      )}
     </section>
   );
 }
