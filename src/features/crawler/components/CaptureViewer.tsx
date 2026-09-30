@@ -13,6 +13,40 @@ interface Props {
   onExecute: (capture: PageCapture, interaction: PageInteraction, allowReview: boolean) => Promise<void>;
 }
 
+interface ViewportOverlay {
+  interaction: PageInteraction;
+  style: CSSProperties;
+}
+
+function getViewportOverlay(capture: PageCapture, interaction: PageInteraction): ViewportOverlay | null {
+  const { bounds } = interaction;
+  const { scrollPosition, viewport } = capture;
+
+  const viewportLeft = scrollPosition.x;
+  const viewportTop = scrollPosition.y;
+  const viewportRight = viewportLeft + viewport.width;
+  const viewportBottom = viewportTop + viewport.height;
+
+  const clippedLeft = Math.max(bounds.x, viewportLeft);
+  const clippedTop = Math.max(bounds.y, viewportTop);
+  const clippedRight = Math.min(bounds.x + bounds.width, viewportRight);
+  const clippedBottom = Math.min(bounds.y + bounds.height, viewportBottom);
+
+  if (clippedRight <= clippedLeft || clippedBottom <= clippedTop) {
+    return null;
+  }
+
+  return {
+    interaction,
+    style: {
+      left: `${((clippedLeft - viewportLeft) / viewport.width) * 100}%`,
+      top: `${((clippedTop - viewportTop) / viewport.height) * 100}%`,
+      width: `${((clippedRight - clippedLeft) / viewport.width) * 100}%`,
+      height: `${((clippedBottom - clippedTop) / viewport.height) * 100}%`,
+    },
+  };
+}
+
 export function CaptureViewer({
   capture,
   executionResult,
@@ -64,21 +98,20 @@ export function CaptureViewer({
     setTarget(true);
   }
 
-  const visibleInteractions =
+  const overlaysToRender: ViewportOverlay[] =
     mode === "full"
-      ? visible.interactions
-      : visible.interactions.filter((interaction) => {
-          const bounds = interaction.bounds;
-          const scroll = visible.scrollPosition;
-          const viewport = visible.viewport;
-
-          return (
-            bounds.x + bounds.width >= scroll.x &&
-            bounds.x <= scroll.x + viewport.width &&
-            bounds.y + bounds.height >= scroll.y &&
-            bounds.y <= scroll.y + viewport.height
-          );
-        });
+      ? visible.interactions.map((interaction) => ({
+          interaction,
+          style: {
+            left: `${interaction.normalizedBounds.xRatio * 100}%`,
+            top: `${interaction.normalizedBounds.yRatio * 100}%`,
+            width: `${interaction.normalizedBounds.widthRatio * 100}%`,
+            height: `${interaction.normalizedBounds.heightRatio * 100}%`,
+          },
+        }))
+      : visible.interactions
+          .map((interaction) => getViewportOverlay(visible, interaction))
+          .filter((overlay): overlay is ViewportOverlay => overlay !== null);
 
   return (
     <section className="capture-result">
@@ -130,51 +163,41 @@ export function CaptureViewer({
       </div>
 
       <div className="capture-workspace">
-        <div className="capture-viewer">
-          <div className={`capture-canvas capture-canvas--${mode}`}>
-            <img
-              src={mode === "full" ? visible.screenshot.dataUrl : visible.viewportScreenshot.dataUrl}
-              alt={`Capture of ${visible.title || visible.finalUrl}`}
-            />
+        <div className="capture-main">
+          <div className="capture-viewer">
+            <div className={`capture-canvas capture-canvas--${mode}`}>
+              <img
+                src={mode === "full" ? visible.screenshot.dataUrl : visible.viewportScreenshot.dataUrl}
+                alt={`Capture of ${visible.title || visible.finalUrl}`}
+              />
 
-            {overlays &&
-              visibleInteractions.map((interaction) => {
-                const isSelected = selected?.id === interaction.id;
-                let style: CSSProperties;
+              {overlays &&
+                overlaysToRender.map(({ interaction, style }) => {
+                  const isSelected = selected?.id === interaction.id;
 
-                if (mode === "full") {
-                  const bounds = interaction.normalizedBounds;
-                  style = {
-                    left: `${bounds.xRatio * 100}%`,
-                    top: `${bounds.yRatio * 100}%`,
-                    width: `${bounds.widthRatio * 100}%`,
-                    height: `${bounds.heightRatio * 100}%`,
-                  };
-                } else {
-                  const bounds = interaction.bounds;
-                  const scroll = visible.scrollPosition;
-                  const viewport = visible.viewport;
-                  style = {
-                    left: `${((bounds.x - scroll.x) / viewport.width) * 100}%`,
-                    top: `${((bounds.y - scroll.y) / viewport.height) * 100}%`,
-                    width: `${(bounds.width / viewport.width) * 100}%`,
-                    height: `${(bounds.height / viewport.height) * 100}%`,
-                  };
-                }
+                  return (
+                    <button
+                      key={interaction.id}
+                      type="button"
+                      className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${
+                        isSelected ? " interaction-overlay--selected" : ""
+                      }`}
+                      style={style}
+                      title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
+                      onClick={() => select(interaction)}
+                    />
+                  );
+                })}
+            </div>
+          </div>
 
-                return (
-                  <button
-                    key={interaction.id}
-                    type="button"
-                    className={`interaction-overlay interaction-overlay--${interaction.executionSafety}${
-                      isSelected ? " interaction-overlay--selected" : ""
-                    }`}
-                    style={style}
-                    title={interaction.accessibleName || interaction.visibleText || interaction.elementType}
-                    onClick={() => select(interaction)}
-                  />
-                );
-              })}
+          <div className="capture-dimensions" aria-label="Capture dimensions">
+            <span>
+              Viewport {visible.viewport.width} × {visible.viewport.height}
+            </span>
+            <span>
+              Page {visible.document.width} × {visible.document.height}
+            </span>
           </div>
         </div>
 
