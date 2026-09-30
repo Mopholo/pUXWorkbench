@@ -2,21 +2,26 @@ import type { PageInteraction } from "../../../../shared/schemas/page-capture";
 
 interface Props {
   interaction: PageInteraction | null;
+  isExecuting: boolean;
+  executionError: string | null;
+  onExecute: (interaction: PageInteraction) => Promise<void>;
 }
 
 function displayValue(value: string | null): string {
   return value?.trim() || "—";
 }
 
-export function InteractionDetails({ interaction }: Props) {
+export function InteractionDetails({ interaction, isExecuting, executionError, onExecute }: Props) {
   if (!interaction) {
     return (
       <aside className="interaction-details interaction-details--empty">
         <h3>Interaction inspector</h3>
-        <p>Select a highlighted element in the capture to inspect its observed metadata.</p>
+        <p>Select a highlighted element to inspect it and determine whether it can be executed safely.</p>
       </aside>
     );
   }
+
+  const canExecute = interaction.executionSafety === "allowed" && !isExecuting;
 
   return (
     <aside className="interaction-details">
@@ -28,6 +33,22 @@ export function InteractionDetails({ interaction }: Props) {
         <span className="interaction-details__type">{interaction.elementType}</span>
       </div>
 
+      <div className={`execution-safety execution-safety--${interaction.executionSafety}`}>
+        <strong>{interaction.executionSafety === "allowed" ? "Execution allowed" : "Execution blocked"}</strong>
+        <span>{interaction.executionReason}</span>
+      </div>
+
+      <button
+        type="button"
+        className="interaction-execute"
+        disabled={!canExecute}
+        onClick={() => onExecute(interaction)}
+      >
+        {isExecuting ? "Executing…" : "Execute interaction"}
+      </button>
+
+      {executionError && <p className="interaction-execution-error" role="alert">{executionError}</p>}
+
       <dl className="interaction-details__grid">
         <div><dt>ID</dt><dd>{interaction.id}</dd></div>
         <div><dt>Role</dt><dd>{displayValue(interaction.role)}</dd></div>
@@ -35,6 +56,9 @@ export function InteractionDetails({ interaction }: Props) {
         <div><dt>Visible text</dt><dd>{displayValue(interaction.visibleText)}</dd></div>
         <div><dt>Href</dt><dd>{displayValue(interaction.href)}</dd></div>
         <div><dt>Disabled</dt><dd>{interaction.disabled ? "Yes" : "No"}</dd></div>
+        <div><dt>Input type</dt><dd>{displayValue(interaction.inputType)}</dd></div>
+        <div><dt>Form method</dt><dd>{displayValue(interaction.formMethod)}</dd></div>
+        <div className="interaction-details__wide"><dt>Form action</dt><dd>{displayValue(interaction.formAction)}</dd></div>
         <div className="interaction-details__wide"><dt>Selector</dt><dd>{interaction.locator.selector}</dd></div>
         <div><dt>Bounds</dt><dd>{Math.round(interaction.bounds.x)}, {Math.round(interaction.bounds.y)} · {Math.round(interaction.bounds.width)} × {Math.round(interaction.bounds.height)}</dd></div>
         <div><dt>Normalized</dt><dd>{interaction.normalizedBounds.xRatio.toFixed(4)}, {interaction.normalizedBounds.yRatio.toFixed(4)} · {interaction.normalizedBounds.widthRatio.toFixed(4)} × {interaction.normalizedBounds.heightRatio.toFixed(4)}</dd></div>

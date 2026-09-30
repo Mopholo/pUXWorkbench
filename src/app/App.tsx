@@ -1,33 +1,52 @@
 import "./App.css";
 import { CaptureForm } from "../features/crawler/components/CaptureForm";
 import { CaptureViewer } from "../features/crawler/components/CaptureViewer";
+import { useInteractionExecution } from "../features/crawler/hooks/useInteractionExecution";
 import { usePageCapture } from "../features/crawler/hooks/usePageCapture";
 
 function App() {
   const { capture, isCapturing, error, runCapture } = usePageCapture();
+  const {
+    result: executionResult,
+    isExecuting,
+    error: executionError,
+    runInteraction,
+    resetExecution,
+  } = useInteractionExecution();
+
+  async function captureUrl(url: string): Promise<void> {
+    resetExecution();
+    await runCapture(url);
+  }
 
   return (
     <main className="app-shell">
       <header className="app-header">
         <p className="app-header__eyebrow">pUXWorkbench</p>
-        <h1>Interaction Discovery</h1>
+        <h1>UI State Capture</h1>
         <p className="app-header__description">
-          Render a website at the canonical 1440px desktop viewport, discover its interactive elements,
-          and inspect normalized hit regions over the captured page.
+          Capture a page, inspect its interactions, explicitly execute eligible controls, and record the resulting UI state and transition.
         </p>
       </header>
 
       <section className="capture-panel">
-        <CaptureForm isCapturing={isCapturing} onCapture={runCapture} />
+        <CaptureForm isCapturing={isCapturing || isExecuting} onCapture={captureUrl} />
         {error && <p className="capture-error" role="alert">{error}</p>}
       </section>
 
       {capture ? (
-        <CaptureViewer key={capture.capturedAt} capture={capture} />
+        <CaptureViewer
+          key={capture.capturedAt}
+          capture={capture}
+          executionResult={executionResult}
+          isExecuting={isExecuting}
+          executionError={executionError}
+          onExecute={(interaction) => runInteraction(capture, interaction)}
+        />
       ) : (
         <section className="empty-state">
           <h2>No capture yet</h2>
-          <p>Enter a URL above to capture a page and discover its interactive elements.</p>
+          <p>Enter a URL above to capture a source state and discover its interactive elements.</p>
         </section>
       )}
     </main>

@@ -176,7 +176,7 @@ Given a URL, pUXWorkbench can:
 
 # Milestone 2 — Interaction Discovery
 
-**Status: In Progress**
+**Status: Complete**
 
 ## Goal
 
@@ -256,6 +256,8 @@ They must remain aligned when the viewer changes size.
 ---
 
 # Milestone 3 — UI State Capture
+
+**Status: In Progress**
 
 ## Goal
 

@@ -20,6 +20,8 @@ export interface InteractionLocator {
   selector: string;
 }
 
+export type InteractionExecutionSafety = "allowed" | "blocked";
+
 export interface PageInteraction {
   id: string;
   elementType: string;
@@ -28,6 +30,11 @@ export interface PageInteraction {
   visibleText: string;
   href: string | null;
   disabled: boolean;
+  formAction: string | null;
+  formMethod: string | null;
+  inputType: string | null;
+  executionSafety: InteractionExecutionSafety;
+  executionReason: string;
   locator: InteractionLocator;
   bounds: ElementBounds;
   normalizedBounds: NormalizedElementBounds;

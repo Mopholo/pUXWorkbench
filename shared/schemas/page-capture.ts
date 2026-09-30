@@ -22,6 +22,11 @@ export const pageInteractionSchema = z.object({
   visibleText: z.string(),
   href: z.string().nullable(),
   disabled: z.boolean(),
+  formAction: z.string().nullable(),
+  formMethod: z.string().nullable(),
+  inputType: z.string().nullable(),
+  executionSafety: z.enum(["allowed", "blocked"]),
+  executionReason: z.string().min(1),
   locator: z.object({
     tagName: z.string().min(1),
     id: z.string().nullable(),

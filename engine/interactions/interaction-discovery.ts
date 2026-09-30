@@ -18,6 +18,44 @@ const INTERACTIVE_SELECTOR = [
   "[role='combobox']",
 ].join(",");
 
+const BLOCKED_ACTION_PATTERN = /\b(delete|remove|destroy|purchase|buy|checkout|pay|payment|place order|submit order|sign out|log out|logout|unsubscribe|cancel subscription)\b/i;
+
+function classifyExecutionSafety(interaction: Omit<PageInteraction, "normalizedBounds" | "executionSafety" | "executionReason">): Pick<PageInteraction, "executionSafety" | "executionReason"> {
+  if (interaction.disabled) {
+    return { executionSafety: "blocked", executionReason: "The control is disabled." };
+  }
+
+  const description = `${interaction.accessibleName} ${interaction.visibleText}`.trim();
+  if (BLOCKED_ACTION_PATTERN.test(description)) {
+    return { executionSafety: "blocked", executionReason: "The control appears destructive or transactional." };
+  }
+
+  if (interaction.elementType === "input" || interaction.elementType === "select" || interaction.elementType === "textarea") {
+    return { executionSafety: "blocked", executionReason: "Milestone 3 does not enter or submit form data." };
+  }
+
+  if (interaction.elementType === "button" && interaction.formAction && interaction.inputType === "submit") {
+    return { executionSafety: "blocked", executionReason: "Form submission is blocked during Milestone 3." };
+  }
+
+  if (interaction.formAction && interaction.elementType === "button") {
+    return { executionSafety: "blocked", executionReason: "Buttons associated with a form are blocked during Milestone 3." };
+  }
+
+  if (interaction.href) {
+    try {
+      const protocol = new URL(interaction.href).protocol;
+      if (protocol !== "http:" && protocol !== "https:") {
+        return { executionSafety: "blocked", executionReason: `Navigation using ${protocol} is not executed.` };
+      }
+    } catch {
+      return { executionSafety: "blocked", executionReason: "The navigation target could not be validated." };
+    }
+  }
+
+  return { executionSafety: "allowed", executionReason: "Eligible for explicit Milestone 3 execution." };
+}
+
 export async function discoverInteractions(
   page: Page,
   documentSize: { width: number; height: number },
@@ -98,6 +136,11 @@ export async function discoverInteractions(
       const disabled =
         ("disabled" in htmlElement && Boolean((htmlElement as HTMLButtonElement).disabled)) ||
         element.getAttribute("aria-disabled") === "true";
+      const form = element instanceof HTMLElement ? element.closest("form") : null;
+      const inputType =
+        element instanceof HTMLButtonElement || element instanceof HTMLInputElement
+          ? element.type || null
+          : null;
 
       return [{
         id: `interaction-${index + 1}`,
@@ -107,6 +150,9 @@ export async function discoverInteractions(
         visibleText,
         href,
         disabled,
+        formAction: form instanceof HTMLFormElement ? form.action || null : null,
+        formMethod: form instanceof HTMLFormElement ? form.method || null : null,
+        inputType,
         locator: {
           tagName: element.tagName.toLowerCase(),
           id: element.id || null,
@@ -126,6 +172,7 @@ export async function discoverInteractions(
 
   return observed.map((interaction) => ({
     ...interaction,
+    ...classifyExecutionSafety(interaction),
     normalizedBounds: {
       xRatio: interaction.bounds.x / documentSize.width,
       yRatio: interaction.bounds.y / documentSize.height,

@@ -1,4 +1,4 @@
-# Site Pattern Studio — Development Principles
+# pUXWorkbench — Development Principles
 
 ## Single Responsibility Principle
 
