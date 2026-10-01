@@ -461,3 +461,7 @@ A captured Transition binds a source State, an Interaction, and a target State. 
 Navigation History is distinct from the State Graph. It records the user's local Back/Forward viewing path as State ID references and does not own State data or remove graph branches when history changes. Consecutive identical State IDs are collapsed, but non-consecutive revisits are retained because they describe a meaningful testing path.
 
 State identity is deterministic from stable observed structure (URL, title, viewport/document geometry, scroll position, and interaction signature), not screenshot bytes. Screenshot pixels remain evidence and change signals, but volatile rendering differences must not manufacture duplicate graph nodes. A transition is unique by source State plus semantic Interaction identity. A transition may target its own source State; this is a self-edge, not a new State.
+
+### Known interaction edge
+
+Within a source State, an Interaction is considered known when its stable semantic identity resolves to an existing Transition whose target State is present in the graph. Volatile discovery evidence such as generated CSS selectors and pixel bounds is not part of the primary semantic identity when stronger attributes (href, accessible name/text, stable locator attributes) exist. A known self-edge is still a captured Transition and is traversed locally; it does not create a duplicate State or consecutive duplicate Navigation History entry.

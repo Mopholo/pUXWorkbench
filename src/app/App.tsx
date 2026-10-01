@@ -4,7 +4,7 @@ import { CaptureForm } from "../features/crawler/components/CaptureForm";
 import { CaptureViewer } from "../features/crawler/components/CaptureViewer";
 import { useInteractionExecution } from "../features/crawler/hooks/useInteractionExecution";
 import { usePageCapture } from "../features/crawler/hooks/usePageCapture";
-import { useCaptureGraph } from "../features/crawler/hooks/useCaptureGraph";
+import { findCapturedTransition, useCaptureGraph } from "../features/crawler/hooks/useCaptureGraph";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 
 function Workbench() {
@@ -23,14 +23,35 @@ function Workbench() {
   }
 
   async function executeCurrent(interaction: Parameters<typeof runInteraction>[1], allowReview: boolean) {
-    if (!currentState) return;
-    await runInteraction(currentState.capture, interaction, allowReview);
+    const liveGraph = useCaptureGraph.getState();
+    const sourceStateId = liveGraph.currentStateId;
+    if (!sourceStateId) return;
+
+    // Defense in depth: the viewer normally follows known edges before the
+    // inspector opens. If stale UI still calls Execute, never contact the live
+    // site for an interaction whose graph edge is already known.
+    const known = findCapturedTransition(liveGraph.transitions, liveGraph.states, sourceStateId, interaction);
+    if (known) {
+      liveGraph.followInteraction(interaction);
+      resetExecution();
+      return;
+    }
+
+    const source = liveGraph.states[sourceStateId];
+    if (!source) return;
+    await runInteraction(source.capture, interaction, allowReview);
   }
 
   useEffect(() => {
-    if (result && !useCaptureGraph.getState().transitions[result.transition.id]) {
-      useCaptureGraph.getState().recordExecution(result);
-    }
+    if (!result) return;
+    const liveGraph = useCaptureGraph.getState();
+    const existing = findCapturedTransition(
+      liveGraph.transitions,
+      liveGraph.states,
+      result.sourceState.id,
+      result.transition.interaction,
+    );
+    if (!existing) liveGraph.recordExecution(result);
   }, [result]);
 
   const isBusy = isCapturing || isExecuting;
@@ -59,9 +80,12 @@ function Workbench() {
           executionError={executionError}
           onInteractionSelected={clearExecutionError}
           onExecute={executeCurrent}
-          onNavigate={graph.navigateTo}
-          onBack={graph.back}
-          onForward={graph.forward}
+          onFollowInteraction={(interaction) => {
+            resetExecution();
+            return useCaptureGraph.getState().followInteraction(interaction);
+          }}
+          onBack={() => { resetExecution(); useCaptureGraph.getState().back(); }}
+          onForward={() => { resetExecution(); useCaptureGraph.getState().forward(); }}
         />
       ) : capture ? null : (
         <section className="empty-state"><h2>pUXWorkbench</h2><p>Enter a source URL to begin capturing UI states.</p></section>

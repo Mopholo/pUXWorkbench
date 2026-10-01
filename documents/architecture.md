@@ -399,3 +399,7 @@ The workbench maintains an in-memory session graph of normalized UI States and T
 Back/Forward history is a view concern and is independent of graph topology. It contains State ID references only. Consecutive identical visits are collapsed, while meaningful revisits are retained. Returning to a state never discards its previously captured outgoing branches.
 
 Graph identity is structural rather than screenshot-byte identity: stable URL/title/geometry/scroll/interaction evidence determines the deterministic State ID, while screenshot differences remain transition evidence. Known edges are resolved by source State plus semantic Interaction identity before any live execution is offered. A repeated A → A observation therefore resolves to one State with one self-edge rather than manufacturing a breadcrumb-like chain of duplicate states.
+
+### Milestone 4 traversal invariant
+
+A captured interaction is a graph-navigation affordance, not a request to execute the live site again. The viewer resolves `(current State, semantic Interaction)` against known Transitions before opening the execution inspector. Known transitions, including self-edges, are followed locally. The execution boundary performs the same check defensively so stale UI cannot re-execute a known edge. Following a stored edge clears stale execution/inspector state. Back/Forward history records State ID visits separately; self-edges do not append consecutive duplicate history entries.

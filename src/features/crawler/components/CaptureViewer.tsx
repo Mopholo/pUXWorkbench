@@ -17,7 +17,7 @@ interface Props {
   executionError: string | null;
   onInteractionSelected: () => void;
   onExecute: (interaction: PageInteraction, allowReview: boolean) => Promise<void>;
-  onNavigate: (stateId: string) => void;
+  onFollowInteraction: (interaction: PageInteraction) => boolean;
   onBack: () => void;
   onForward: () => void;
 }
@@ -58,7 +58,7 @@ function getViewportOverlay(capture: PageCapture, interaction: PageInteraction):
 
 export function CaptureViewer({
   state, states, transitions, stateCount, transitionCount, canBack, canForward,
-  isExecuting, executionError, onInteractionSelected, onExecute, onNavigate, onBack, onForward,
+  isExecuting, executionError, onInteractionSelected, onExecute, onFollowInteraction, onBack, onForward,
 }: Props) {
   const [selected, setSelected] = useState<PageInteraction | null>(null);
   const [overlays, setOverlays] = useState(true);
@@ -77,7 +77,8 @@ export function CaptureViewer({
     onInteractionSelected();
     const transition = knownTransition(interaction);
     if (transition) {
-      onNavigate(transition.targetStateId);
+      setSelected(null);
+      onFollowInteraction(interaction);
       return;
     }
     setSelected(interaction);
